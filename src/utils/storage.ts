@@ -2,7 +2,11 @@ import { del, get, set } from 'idb-keyval';
 
 import type { PersistedEnvelope } from '@/types';
 
-const STORAGE_VERSION = 1;
+/**
+ * v1：只有 users / items / exchanges
+ * v2：新增不可改交割单（settlements）与交割待提交标记，旧数据启动时按完成时间回填
+ */
+export const STORAGE_VERSION = 2;
 const DEFAULT_TTL = 1000 * 60 * 60 * 24 * 365;
 
 const prefixed = (key: string) => `reswap:${key}`;
@@ -12,9 +16,15 @@ export const STORAGE_KEYS = {
   users: prefixed('users'),
   items: prefixed('items'),
   exchanges: prefixed('exchanges'),
+  /** 不可改交割单集合，只允许追加写入，不允许改/删单笔 */
+  receipts: prefixed('settlements'),
+  /** 交割两阶段提交的未落盘标记 */
+  settlementPending: prefixed('settlement-pending'),
+  /** 旧数据升级回填的水位记录 */
+  settlementMigratedAt: prefixed('settlement-migrated-at'),
   theme: prefixed('theme'),
   lastClean: prefixed('last-clean'),
-};
+} as const;
 
 const now = () => Date.now();
 
@@ -53,7 +63,9 @@ export const storage = {
       await this.remove(key);
       return fallback;
     }
-    if (localEnvelope?.version === STORAGE_VERSION) {
+    // 旧版本数据仍然可读（向前兼容），业务层下次写入时会自动包装为当前版本；
+    // 只有来自更新版本的数据才放弃，避免误判为空而用种子数据覆盖。
+    if (localEnvelope && localEnvelope.version <= STORAGE_VERSION) {
       return localEnvelope.payload;
     }
 
@@ -62,7 +74,7 @@ export const storage = {
       await this.remove(key);
       return fallback;
     }
-    if (indexedEnvelope?.version === STORAGE_VERSION) {
+    if (indexedEnvelope && indexedEnvelope.version <= STORAGE_VERSION) {
       writeLocal(key, indexedEnvelope.payload);
       return indexedEnvelope.payload;
     }

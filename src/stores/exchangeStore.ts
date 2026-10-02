@@ -1,8 +1,11 @@
 import { defineStore } from 'pinia';
 
 import { exchangeApi } from '@/api/exchangeApi';
+import { settlementApi } from '@/api/settlementApi';
 import { ExchangeStatus } from '@/constants/exchange';
 import type { Exchange, ExchangeDraft } from '@/models/exchange';
+import { useItemStore } from '@/stores/itemStore';
+import { useSettlementStore } from '@/stores/settlementStore';
 import { message } from '@/utils/message';
 
 export const useExchangeStore = defineStore('exchanges', {
@@ -45,9 +48,13 @@ export const useExchangeStore = defineStore('exchanges', {
       message('已拒绝交换', 'success');
     },
     async complete(id: string) {
-      await exchangeApi.transition(id, ExchangeStatus.COMPLETED);
-      this.exchanges = await exchangeApi.list();
-      message('交换已完成，双方物品状态已更新', 'success');
+      // settle 内部已做两阶段提交与幂等恢复；任何失败都透传给页面，不谎报成功
+      const { recovered } = await settlementApi.settle(id);
+      // 成交后三处状态同源刷新：交换、双方物品、不可改交割单
+      const itemStore = useItemStore();
+      const settlementStore = useSettlementStore();
+      await Promise.all([this.hydrate(), itemStore.refresh(), settlementStore.hydrate()]);
+      message(recovered ? '已从最近交割单恢复本次成交' : '交换已完成，交割单已生成', 'success');
     },
   },
 });

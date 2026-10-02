@@ -249,6 +249,14 @@ main {
   gap: 12px;
 }
 
+.item-card__receipt {
+  border-top: 1px dashed var(--rs-border);
+  padding-top: 8px;
+  color: color-mix(in oklch, var(--rs-text), transparent 26%);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
 .item-card h3 {
   margin: 0;
   font-size: 1.28rem;
@@ -348,6 +356,7 @@ main {
 .profile-form,
 .profile-side,
 .exchange-card,
+.receipt-card,
 .empty-state,
 .global-error {
   border: 1px solid var(--rs-border);
@@ -594,6 +603,104 @@ textarea {
   gap: 8px;
 }
 
+.receipt-card {
+  display: grid;
+  gap: 14px;
+  border-style: dashed;
+}
+
+.receipt-card--compact {
+  padding: 14px;
+}
+
+.receipt-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.receipt-card__head small {
+  color: color-mix(in oklch, var(--rs-text), transparent 42%);
+}
+
+.receipt-card__items {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.receipt-card__side {
+  display: grid;
+  gap: 5px;
+  border-radius: 7px;
+  background: color-mix(in oklch, var(--rs-primary), transparent 90%);
+  padding: 12px;
+}
+
+.receipt-card__side span {
+  color: color-mix(in oklch, var(--rs-text), transparent 42%);
+  font-size: 0.8rem;
+}
+
+.receipt-card__side strong {
+  word-break: break-all;
+}
+
+.receipt-card__side small {
+  color: color-mix(in oklch, var(--rs-text), transparent 30%);
+}
+
+.receipt-card__user {
+  font-weight: 700;
+}
+
+.receipt-card__arrow {
+  display: grid;
+  place-items: center;
+  color: var(--rs-accent);
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.receipt-card__note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: color-mix(in oklch, var(--rs-text), transparent 28%);
+  font-size: 0.82rem;
+}
+
+.receipt-card__tag {
+  flex: none;
+  border-radius: 4px;
+  background: color-mix(in oklch, var(--rs-accent), transparent 80%);
+  padding: 2px 6px;
+  color: var(--rs-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.receipt-strip {
+  display: grid;
+  gap: 10px;
+  border-top: 1px dashed var(--rs-border);
+  padding-top: 14px;
+}
+
+.home-receipts {
+  display: grid;
+  gap: 14px;
+  margin-top: 36px;
+}
+
+.home-receipts__list {
+  display: grid;
+  gap: 14px;
+}
+
 .profile-side {
   display: grid;
   gap: 18px;
@@ -662,8 +769,13 @@ textarea {
   .detail-layout,
   .profile-layout,
   .exchange-card__items,
+  .receipt-card__items,
   .detail-list {
     grid-template-columns: 1fr;
+  }
+
+  .receipt-card__arrow {
+    transform: rotate(90deg);
   }
 
   .gallery__main {

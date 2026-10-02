@@ -32,6 +32,7 @@
         :exchange="exchange"
         :items="itemStore.items"
         :users="authStore.users"
+        :receipt="settlementStore.byExchange(exchange.id)"
         @accept="exchangeStore.accept"
         @reject="exchangeStore.reject"
         @complete="completeExchange"
@@ -57,10 +58,12 @@ import { useExchangeStats } from '@/hooks/useExchangeStats';
 import { useAuthStore } from '@/stores/authStore';
 import { useExchangeStore } from '@/stores/exchangeStore';
 import { useItemStore } from '@/stores/itemStore';
+import { useSettlementStore } from '@/stores/settlementStore';
 
 const authStore = useAuthStore();
 const itemStore = useItemStore();
 const exchangeStore = useExchangeStore();
+const settlementStore = useSettlementStore();
 const tab = ref<'sent' | 'received'>('sent');
 
 const mine = computed(() => {
@@ -74,8 +77,8 @@ const visibleExchanges = computed(() => mine.value);
 const stats = useExchangeStats(() => exchangeStore.exchanges);
 
 const completeExchange = async (id: string) => {
+  // 交割成功后 store 已同源刷新交换/物品/交割单，无需再手动改动物品
   await exchangeStore.complete(id);
-  itemStore.items = itemStore.items.map((item) => item);
 };
 
 void ExchangeStatus.PENDING;

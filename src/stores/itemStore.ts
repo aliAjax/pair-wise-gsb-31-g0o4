@@ -43,6 +43,10 @@ export const useItemStore = defineStore('items', {
         this.loading = false;
       }
     },
+    /** 交割完成后整表刷新，拿到两侧一起变更后的物品状态 */
+    async refresh() {
+      this.items = await itemApi.list();
+    },
     async publish(draft: ItemDraft) {
       const error = validateItemDraft(draft);
       if (error) {

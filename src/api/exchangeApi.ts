@@ -3,6 +3,7 @@ import { ItemStatus } from '@/constants/item';
 import type { Exchange, ExchangeDraft } from '@/models/exchange';
 
 import { itemApi } from './itemApi';
+import { settlementApi } from './settlementApi';
 import { storage, STORAGE_KEYS } from '@/utils/storage';
 
 const seedExchanges: Exchange[] = [
@@ -53,8 +54,9 @@ export const exchangeApi = {
     }
     const nextExchange: Exchange = { ...current, status, updated_at: new Date().toISOString() };
     if (status === ExchangeStatus.COMPLETED) {
-      await itemApi.setStatus(current.from_item_id, ItemStatus.EXCHANGED);
-      await itemApi.setStatus(current.to_item_id, ItemStatus.EXCHANGED);
+      // 成交走交割流程：生成不可改交割单，双方物品状态在同一次整表写回里一起变更
+      await settlementApi.settle(id);
+      return (await this.list()).find((item) => item.id === id) ?? nextExchange;
     }
     await storage.set(
       STORAGE_KEYS.exchanges,

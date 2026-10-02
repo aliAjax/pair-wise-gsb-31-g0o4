@@ -49,6 +49,11 @@
         <button v-else-if="item.status === ItemStatus.AVAILABLE" class="secondary-button" type="button" @click="offlineItem">
           下架这件物品
         </button>
+
+        <section v-if="itemReceipt" class="receipt-strip">
+          <p class="eyebrow">成交依据（不可改）</p>
+          <ReceiptCard :receipt="itemReceipt" />
+        </section>
       </article>
     </div>
   </section>
@@ -61,12 +66,14 @@ import { RouterLink, useRoute } from 'vue-router';
 
 import EmptyState from '@/components/common/EmptyState.vue';
 import ItemImageGallery from '@/components/common/ItemImageGallery.vue';
+import ReceiptCard from '@/components/common/ReceiptCard.vue';
 import UserBrief from '@/components/common/UserBrief.vue';
 import { ExchangeStatus } from '@/constants/exchange';
 import { ItemStatus } from '@/constants/item';
 import { useAuthStore } from '@/stores/authStore';
 import { useExchangeStore } from '@/stores/exchangeStore';
 import { useItemStore } from '@/stores/itemStore';
+import { useSettlementStore } from '@/stores/settlementStore';
 import { formatCondition, formatDate, formatItemStatus, statusToneClass } from '@/utils/formatters';
 import { message } from '@/utils/message';
 
@@ -74,6 +81,7 @@ const route = useRoute();
 const itemStore = useItemStore();
 const authStore = useAuthStore();
 const exchangeStore = useExchangeStore();
+const settlementStore = useSettlementStore();
 
 const item = computed(() => itemStore.items.find((entry) => entry.id === route.params.id));
 const owner = computed(() => authStore.users.find((user) => user.id === item.value?.user_id));
@@ -83,6 +91,12 @@ const ownAvailableItems = computed(() =>
 );
 const selectedItemId = ref('');
 const messageText = ref('我想用这件闲置与你交换，可以沟通时间和地点。');
+
+// 详情页与首页、交换页共用同一份不可改交割单
+const itemReceipts = computed(() =>
+  typeof route.params.id === 'string' ? settlementStore.byItem(route.params.id) : [],
+);
+const itemReceipt = computed(() => (itemReceipts.value.length ? itemReceipts.value[itemReceipts.value.length - 1] : undefined));
 
 const requestExchange = async () => {
   if (!authStore.currentUser || !item.value || !owner.value) return;
