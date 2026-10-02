@@ -560,6 +560,91 @@ textarea {
   gap: 14px;
 }
 
+.settlement-note {
+  display: grid;
+  gap: 10px;
+  border: 1px dashed var(--rs-accent);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: color-mix(in oklch, var(--rs-accent), transparent 94%);
+}
+
+.settlement-note--card {
+  font-size: 0.92rem;
+}
+
+.settlement-note--panel {
+  margin-top: 14px;
+}
+
+.settlement-note__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settlement-note__head strong {
+  letter-spacing: 0.08em;
+}
+
+.settlement-note__no,
+.settlement-note__time {
+  margin: 0;
+  color: color-mix(in oklch, var(--rs-text), transparent 25%);
+  font-size: 0.82rem;
+}
+
+.settlement-note__items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.settlement-note__items div {
+  display: grid;
+  gap: 4px;
+  border-radius: 7px;
+  border: 1px solid var(--rs-border);
+  padding: 10px;
+}
+
+.settlement-note__items span {
+  color: color-mix(in oklch, var(--rs-text), transparent 42%);
+  font-size: 0.78rem;
+}
+
+.settlement-note__items small {
+  color: color-mix(in oklch, var(--rs-text), transparent 35%);
+}
+
+.settlement-note__hints {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  color: var(--rs-accent);
+  font-size: 0.8rem;
+}
+
+.item-card__deal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px dashed var(--rs-border);
+  padding-top: 8px;
+}
+
+.item-card__deal small {
+  color: color-mix(in oklch, var(--rs-text), transparent 30%);
+}
+
+.detail-settlement {
+  width: 100%;
+}
+
 .exchange-card {
   display: grid;
   gap: 14px;
@@ -662,6 +747,7 @@ textarea {
   .detail-layout,
   .profile-layout,
   .exchange-card__items,
+  .settlement-note__items,
   .detail-list {
     grid-template-columns: 1fr;
   }

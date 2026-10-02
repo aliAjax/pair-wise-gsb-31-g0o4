@@ -49,6 +49,15 @@
         <button v-else-if="item.status === ItemStatus.AVAILABLE" class="secondary-button" type="button" @click="offlineItem">
           下架这件物品
         </button>
+
+        <!-- 成交依据：首页/详情/交换页共用同一张不可改交割单 -->
+        <SettlementNote
+          v-if="settlement"
+          class="detail-settlement"
+          :receipt="settlement"
+          variant="panel"
+          :items="itemStore.items"
+        />
       </article>
     </div>
   </section>
@@ -61,12 +70,14 @@ import { RouterLink, useRoute } from 'vue-router';
 
 import EmptyState from '@/components/common/EmptyState.vue';
 import ItemImageGallery from '@/components/common/ItemImageGallery.vue';
+import SettlementNote from '@/components/common/SettlementNote.vue';
 import UserBrief from '@/components/common/UserBrief.vue';
 import { ExchangeStatus } from '@/constants/exchange';
 import { ItemStatus } from '@/constants/item';
 import { useAuthStore } from '@/stores/authStore';
 import { useExchangeStore } from '@/stores/exchangeStore';
 import { useItemStore } from '@/stores/itemStore';
+import { useSettlementStore } from '@/stores/settlementStore';
 import { formatCondition, formatDate, formatItemStatus, statusToneClass } from '@/utils/formatters';
 import { message } from '@/utils/message';
 
@@ -74,6 +85,7 @@ const route = useRoute();
 const itemStore = useItemStore();
 const authStore = useAuthStore();
 const exchangeStore = useExchangeStore();
+const settlementStore = useSettlementStore();
 
 const item = computed(() => itemStore.items.find((entry) => entry.id === route.params.id));
 const owner = computed(() => authStore.users.find((user) => user.id === item.value?.user_id));
@@ -83,6 +95,11 @@ const ownAvailableItems = computed(() =>
 );
 const selectedItemId = ref('');
 const messageText = ref('我想用这件闲置与你交换，可以沟通时间和地点。');
+
+// 详情页的成交依据与首页卡片、交换页用同一个 store 读取，保证三处一致。
+const settlement = computed(() =>
+  item.value ? settlementStore.byItem(item.value.id) : undefined,
+);
 
 const requestExchange = async () => {
   if (!authStore.currentUser || !item.value || !owner.value) return;

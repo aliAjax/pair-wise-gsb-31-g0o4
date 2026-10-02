@@ -57,10 +57,12 @@ import { useExchangeStats } from '@/hooks/useExchangeStats';
 import { useAuthStore } from '@/stores/authStore';
 import { useExchangeStore } from '@/stores/exchangeStore';
 import { useItemStore } from '@/stores/itemStore';
+import { useSettlementStore } from '@/stores/settlementStore';
 
 const authStore = useAuthStore();
 const itemStore = useItemStore();
 const exchangeStore = useExchangeStore();
+const settlementStore = useSettlementStore();
 const tab = ref<'sent' | 'received'>('sent');
 
 const mine = computed(() => {
@@ -75,7 +77,8 @@ const stats = useExchangeStats(() => exchangeStore.exchanges);
 
 const completeExchange = async (id: string) => {
   await exchangeStore.complete(id);
-  itemStore.items = itemStore.items.map((item) => item);
+  // 交割单已在 API 层落盘，三个视图统一重新读数。
+  await Promise.all([itemStore.hydrate(), settlementStore.hydrate()]);
 };
 
 void ExchangeStatus.PENDING;

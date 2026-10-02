@@ -1,8 +1,12 @@
 import { del, get, set } from 'idb-keyval';
 
-import type { PersistedEnvelope } from '@/types';
+import type { PersistedEnvelope, RawEnvelope } from '@/types';
 
-const STORAGE_VERSION = 1;
+/**
+ * v2：新增不可变交割单（settlements）。
+ * v1 -> v2 的回填在 utils/migrations.ts 中按完成时间执行。
+ */
+const STORAGE_VERSION = 2;
 const DEFAULT_TTL = 1000 * 60 * 60 * 24 * 365;
 
 const prefixed = (key: string) => `reswap:${key}`;
@@ -12,9 +16,12 @@ export const STORAGE_KEYS = {
   users: prefixed('users'),
   items: prefixed('items'),
   exchanges: prefixed('exchanges'),
+  settlements: prefixed('settlements'),
   theme: prefixed('theme'),
   lastClean: prefixed('last-clean'),
-};
+  /** 记录数据结构升级到的版本，迁移成功后写入。 */
+  schemaVersion: prefixed('schema-version'),
+} as const;
 
 const now = () => Date.now();
 
@@ -47,6 +54,10 @@ const writeLocal = <T>(key: string, payload: T, ttl?: number) => {
 };
 
 export const storage = {
+  /**
+   * 读取业务数据。版本落后于当前代码时返回 fallback 而不是删除旧信封，
+   * 由 runMigrations 负责升级，避免旧数据在升级前被误当空数据覆盖。
+   */
   async get<T>(key: string, fallback: T): Promise<T> {
     const localEnvelope = parseLocal<T>(key);
     if (isExpired(localEnvelope)) {
@@ -67,6 +78,13 @@ export const storage = {
       return indexedEnvelope.payload;
     }
     return fallback;
+  },
+
+  /** 读取任意版本的原始信封（含旧版本），仅供迁移层使用。 */
+  async getRaw<T>(key: string): Promise<RawEnvelope<T>> {
+    const localEnvelope = parseLocal<T>(key);
+    if (localEnvelope) return localEnvelope;
+    return (await get<PersistedEnvelope<T>>(key)) ?? null;
   },
 
   async set<T>(key: string, payload: T, ttl?: number): Promise<T> {

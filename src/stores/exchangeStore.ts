@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 
 import { exchangeApi } from '@/api/exchangeApi';
+import { settlementApi } from '@/api/settlementApi';
 import { ExchangeStatus } from '@/constants/exchange';
 import type { Exchange, ExchangeDraft } from '@/models/exchange';
 import { message } from '@/utils/message';
@@ -44,10 +45,17 @@ export const useExchangeStore = defineStore('exchanges', {
       this.exchanges = await exchangeApi.list();
       message('已拒绝交换', 'success');
     },
+    /**
+     * 完成交换必须经由交割单：先冻结快照，再成对更新物品，最后标记完成。
+     * 这里只做协调与提示，幂等/去重/恢复全部由 settlementApi 保证。
+     */
     async complete(id: string) {
-      await exchangeApi.transition(id, ExchangeStatus.COMPLETED);
+      const { replayed } = await settlementApi.completeExchange(id);
       this.exchanges = await exchangeApi.list();
-      message('交换已完成，双方物品状态已更新', 'success');
+      message(
+        replayed ? '交割单已存在，已补齐状态，未重复生成记录' : '交换已完成，不可改交割单已生成',
+        'success',
+      );
     },
   },
 });

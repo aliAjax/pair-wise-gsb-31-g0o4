@@ -50,3 +50,9 @@ export const statusToneClass = (status: ItemStatus | ExchangeStatus) => {
 };
 
 export const formatStatusMessage = (status: ItemStatus | ExchangeStatus) => STATUS_MESSAGE_MAP[status];
+
+/** 交割单号：settlement_exchange_xxx -> JG-exchange-x… 的前 12 位，便于核对。 */
+export const formatSettlementNo = (settlementId: string) => {
+  const shortId = settlementId.replace(/^settlement_/, '').replace(/^exchange_/, '').slice(0, 12);
+  return `JG-${shortId || 'unknown'}`;
+};

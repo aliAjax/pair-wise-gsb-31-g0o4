@@ -13,21 +13,24 @@ export const useItemStore = defineStore('items', {
     items: [] as Item[],
     keyword: '',
     category: '全部',
+    // 首页保留可交换与已交换物品：已交换的卡片底部带不可改交割依据。
     statusFilter: ItemStatus.AVAILABLE as ItemStatus,
     loading: false,
   }),
   getters: {
     visibleItems: (state) => {
+      const visibleStatuses = [ItemStatus.AVAILABLE, ItemStatus.EXCHANGED];
       return orderBy(
         state.items.filter((item) => {
           const categoryMatched = state.category === '全部' || item.category === state.category;
           const keywordMatched = `${item.title}${item.description}${item.location}`
             .toLowerCase()
             .includes(state.keyword.toLowerCase());
-          return categoryMatched && keywordMatched && item.status === state.statusFilter;
+          return categoryMatched && keywordMatched && visibleStatuses.includes(item.status);
         }),
-        ['created_at'],
-        ['desc'],
+        // 可交换排前面，已交换排后面，同类内按发布时间倒序。
+        ['status', 'created_at'],
+        ['asc', 'desc'],
       );
     },
     myItems: (state) => (userId: string) => state.items.filter((item) => item.user_id === userId),

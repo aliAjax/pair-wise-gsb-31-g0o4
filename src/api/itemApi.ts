@@ -43,14 +43,26 @@ const seedItems: Item[] = [
   {
     id: 'item_lamp',
     user_id: 'user_lin',
-    title: '木质小夜灯',
-    description: '暖光，适合床头。已完成交换，保留记录用于状态展示。',
+    title: '暖光木质小夜灯（改名后）',
+    description: '暖光，适合床头。已完成交换，保留记录用于状态展示；交割单里仍是成交时的名称。',
     category: '家居',
     condition: ItemCondition.LIKE_NEW,
     images: [],
     status: ItemStatus.EXCHANGED,
     location: '杭州 · 西湖',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 90).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 100).toISOString(),
+  },
+  {
+    id: 'item_headphone',
+    user_id: 'user_me',
+    title: '这条闲置已下架，标题不再对外展示',
+    description: '一副旧头戴耳机，已在交换完成后由本人下架。',
+    category: '数码',
+    condition: ItemCondition.GOOD,
+    images: [],
+    status: ItemStatus.OFFLINE,
+    location: '上海 · 徐汇',
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 120).toISOString(),
   },
 ];
 
@@ -93,5 +105,17 @@ export const itemApi = {
 
   async setStatus(id: string, status: ItemStatus): Promise<Item> {
     return this.update(id, { status });
+  },
+
+  /**
+   * 一次性把两件物品置为同一状态（交割恢复专用）。
+   * 必须在同一次 storage.set 内落盘，禁止分两次调用造成只改一侧。
+   */
+  async setPairStatus(ids: [string, string], status: ItemStatus): Promise<Item[]> {
+    const items = await this.list();
+    const pair = new Set(ids);
+    const nextItems = items.map((item) => (pair.has(item.id) ? { ...item, status } : item));
+    await storage.set(STORAGE_KEYS.items, nextItems);
+    return nextItems;
   },
 };
